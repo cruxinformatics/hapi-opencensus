@@ -1,0 +1,32 @@
+{
+  "name": "hapi-opencensus",
+  "version": "1.0.0",
+  "description": "Hapi plugin to produce commonly needed opencensus measures and views.",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cruxinformatics/hapi-opencensus.git"
+  },
+  "keywords": [
+    "hapi",
+    "opencensus",
+    "stackdriver",
+    "stats",
+    "metrics",
+    "plugin"
+  ],
+  "author": "Max Gurewitz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cruxinformatics/hapi-opencensus/issues"
+  },
+  "homepage": "https://github.com/cruxinformatics/hapi-opencensus#readme",
+  "devDependencies": {
+    "typescript": "^3.2.4"
+  }
+}
