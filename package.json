@@ -2,11 +2,24 @@
   "name": "hapi-opencensus",
   "version": "1.0.0",
   "description": "Hapi plugin to produce commonly needed opencensus measures and views.",
-  "main": "lib/index.js",
+  "main": "lib/src/index.js",
   "scripts": {
     "build": "tsc",
     "prepublish": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "tslint src/**/*.ts test/**/*.ts --project tsconfig.json",
+    "test": "ava"
+  },
+  "ava": {
+    "files": [
+      "test/**/*.test.ts"
+    ],
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   },
   "repository": {
     "type": "git",
@@ -28,8 +41,21 @@
   "homepage": "https://github.com/cruxinformatics/hapi-opencensus#readme",
   "devDependencies": {
     "@types/hapi": "^18.0.0",
+    "@types/mocha": "^5.2.5",
+    "ava": "^1.2.0",
     "hapi": "^18.0.1",
+    "ts-node": "^8.0.2",
+    "tslint": "^5.12.1",
+    "tslint-config-airbnb": "^5.11.1",
     "typescript": "^3.2.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@opencensus/core": "0.0.8",
+    "@opencensus/exporter-stackdriver": "0.0.8",
+    "boom": "^7.3.0"
+  },
+  "peerDependencies": {
+    "hapi": ">=17.x.x",
+    "@opencensus/core": "<2.0.0"
+  }
 }
