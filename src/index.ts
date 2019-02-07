@@ -29,6 +29,10 @@ interface PluginsState {
   'hapi-opencensus': RequestState;
 }
 
+function routeReference(route: hapi.RequestRoute): string {
+  return `${route.method}-${route.path}`;
+}
+
 function cleanMetricPath(path: string): string {
   return path.replace(/(\{|\})/g, '_').replace(/\//g, '.');
 }
@@ -54,38 +58,38 @@ export const plugin: hapi.Plugin<PluginOptions> = {
         server.table().forEach((route) => {
           const latencyMeasure =
             stats.createMeasureDouble(
-              cleanMetricPath(`hapi-opencensus-response-time${route.path}`),
+              cleanMetricPath(`hapi-opencensus-response-time-${route.method}${route.path}`),
               MeasureUnit.MS,
-              `Response time of ${route.path} in ms.`,
+              `Response time of ${route.method} ${route.path} in ms.`,
             );
 
           stats.createView(
-            cleanMetricPath(`hapi-opencensus-response-time-distribution${route.path}`),
+            cleanMetricPath(`hapi-opencensus-response-time-distribution-${route.method}${route.path}`),
             latencyMeasure,
             AggregationType.DISTRIBUTION,
             [],
-            `Distribution of response times of ${route.path} in ms.`,
+            `Distribution of response times of ${route.method} ${route.path} in ms.`,
             latencyBuckets,
           );
 
           const statusMeasure =
             stats.createMeasureDouble(
-              cleanMetricPath(`hapi-opencensus-status${route.path}`),
+              cleanMetricPath(`hapi-opencensus-status-${route.method}${route.path}`),
               MeasureUnit.UNIT,
-              `Status code of ${route.path} response rounded to closest 100.`,
+              `Status code of ${route.method} ${route.path} response rounded to closest 100.`,
             );
 
           stats.createView(
-            cleanMetricPath(`hapi-opencensus-status-distribution${route.path}`),
+            cleanMetricPath(`hapi-opencensus-status-distribution-${route.method}${route.path}`),
             statusMeasure,
             AggregationType.DISTRIBUTION,
             [],
-            `Distribution of response statuses of ${route.path} rounded to closest 100.`,
+            `Distribution of response statuses of ${route.method} ${route.path} rounded to closest 100.`,
             statusBuckets,
           );
 
-          latencyMeasures[route.path] = latencyMeasure;
-          statusMeasures[route.path] = statusMeasure;
+          latencyMeasures[routeReference(route)] = latencyMeasure;
+          statusMeasures[routeReference(route)] = statusMeasure;
         });
 
       },
@@ -108,7 +112,7 @@ export const plugin: hapi.Plugin<PluginOptions> = {
         const responseTime = Date.now() - pluginsState[packageJson.name].start;
 
         stats.record({
-          measure: latencyMeasures[request.route.path],
+          measure: latencyMeasures[routeReference(request.route)],
           tags: {},
           value: responseTime,
         });
@@ -124,7 +128,7 @@ export const plugin: hapi.Plugin<PluginOptions> = {
         const roundedStatus = Math.floor(statusCode / 100) * 100;
 
         stats.record({
-          measure: statusMeasures[request.route.path],
+          measure: statusMeasures[routeReference(request.route)],
           tags: {},
           value: roundedStatus,
         });
