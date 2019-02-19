@@ -1,5 +1,5 @@
 {
-  "name": "hapi-opencensus",
+  "name": "@cruxinformatics/hapi-opencensus",
   "version": "1.0.0",
   "description": "Hapi plugin to produce commonly needed opencensus measures and views.",
   "main": "lib/src/index.js",
@@ -33,7 +33,7 @@
     "metrics",
     "plugin"
   ],
-  "author": "Max Gurewitz",
+  "author": "Crux Informatics, Inc.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/cruxinformatics/hapi-opencensus/issues"
