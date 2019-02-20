@@ -1,6 +1,6 @@
 {
   "name": "@cruxinformatics/hapi-opencensus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hapi plugin to produce commonly needed opencensus measures and views.",
   "main": "lib/src/index.js",
   "scripts": {
