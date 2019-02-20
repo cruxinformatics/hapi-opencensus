@@ -55,41 +55,47 @@ export const plugin: hapi.Plugin<PluginOptions> = {
     server.ext({
       type: 'onPreStart',
       method(server) {
-        server.table().forEach((route) => {
+        server.table().forEach((r) => {
           const latencyMeasure =
             stats.createMeasureDouble(
-              cleanMetricPath(`hapi-opencensus-response-time-${route.method}${route.path}`),
+              cleanMetricPath(`hapi-opencensus-response-time-${r.method}${r.path}`),
               MeasureUnit.MS,
-              `Response time of ${route.method} ${route.path} in ms.`,
+              `Response time of ${r.method} ${r.path} in ms.`,
             );
 
+          const latencyDistributionPath =
+            cleanMetricPath(`hapi-opencensus-response-time-distribution-${r.method}${r.path}`);
+
           stats.createView(
-            cleanMetricPath(`hapi-opencensus-response-time-distribution-${route.method}${route.path}`),
+            latencyDistributionPath,
             latencyMeasure,
             AggregationType.DISTRIBUTION,
             [],
-            `Distribution of response times of ${route.method} ${route.path} in ms.`,
+            `Distribution of response times of ${r.method} ${r.path} in ms.`,
             latencyBuckets,
           );
 
           const statusMeasure =
             stats.createMeasureDouble(
-              cleanMetricPath(`hapi-opencensus-status-${route.method}${route.path}`),
+              cleanMetricPath(`hapi-opencensus-status-${r.method}${r.path}`),
               MeasureUnit.UNIT,
-              `Status code of ${route.method} ${route.path} response rounded to closest 100.`,
+              `Status code of ${r.method} ${r.path} response rounded to closest 100.`,
             );
 
+          const statusDistributionPath =
+            cleanMetricPath(`hapi-opencensus-status-distribution-${r.method}${r.path}`);
+
           stats.createView(
-            cleanMetricPath(`hapi-opencensus-status-distribution-${route.method}${route.path}`),
+            statusDistributionPath,
             statusMeasure,
             AggregationType.DISTRIBUTION,
             [],
-            `Distribution of response statuses of ${route.method} ${route.path} rounded to closest 100.`,
+            `Distribution of response statuses of ${r.method} ${r.path} rounded to closest 100.`,
             statusBuckets,
           );
 
-          latencyMeasures[routeReference(route)] = latencyMeasure;
-          statusMeasures[routeReference(route)] = statusMeasure;
+          latencyMeasures[routeReference(r)] = latencyMeasure;
+          statusMeasures[routeReference(r)] = statusMeasure;
         });
 
       },
@@ -111,27 +117,33 @@ export const plugin: hapi.Plugin<PluginOptions> = {
         const pluginsState: any = request.plugins;
         const responseTime = Date.now() - pluginsState[packageJson.name].start;
 
-        stats.record({
-          measure: latencyMeasures[routeReference(request.route)],
-          tags: {},
-          value: responseTime,
-        });
-
-        let statusCode;
-        if (request.response instanceof boom) {
-          const response = request.response as boom;
-          statusCode = response.output.statusCode;
-        } else {
-          const response = request.response as hapi.ResponseObject;
-          statusCode = response.statusCode;
+        const latencyMeasure = latencyMeasures[routeReference(request.route)];
+        if (latencyMeasure) {
+          stats.record({
+            measure: latencyMeasure,
+            tags: {},
+            value: responseTime,
+          });
         }
-        const roundedStatus = Math.floor(statusCode / 100) * 100;
 
-        stats.record({
-          measure: statusMeasures[routeReference(request.route)],
-          tags: {},
-          value: roundedStatus,
-        });
+        const statusMeasure = statusMeasures[routeReference(request.route)];
+        if (statusMeasure) {
+          let statusCode;
+          if (request.response instanceof boom) {
+            const response = request.response as boom;
+            statusCode = response.output.statusCode;
+          } else {
+            const response = request.response as hapi.ResponseObject;
+            statusCode = response.statusCode;
+          }
+          const roundedStatus = Math.floor(statusCode / 100) * 100;
+
+          stats.record({
+            measure: statusMeasure,
+            tags: {},
+            value: roundedStatus,
+          });
+        }
 
         return h.continue;
       },
